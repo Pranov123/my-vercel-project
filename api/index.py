@@ -4,7 +4,10 @@ import numpy as np
 import os
 
 app = FastAPI()
-
+# Add this above your existing @app.post("/api/latency") block
+@app.get("/api/latency")
+async def test_get():
+    return {"message": "The API is alive! Now send a POST request to test the logic."}
 @app.post("/api/latency")
 async def get_latency(request: Request):
     try:
