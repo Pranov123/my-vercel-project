@@ -6,6 +6,7 @@ import os
 
 app = FastAPI()
 
+# 1. Allow everything so the validator can connect
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -13,10 +14,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 2. Explicitly handle the preflight OPTIONS request
+@app.options("/api/latency")
+async def options_handler(request: Request):
+    return Response(
+        status_code=200,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+        }
+    )
+
 @app.post("/api/latency")
-async def handle_latency(request: Request):
+async def get_latency(request: Request):
     try:
-        # Load JSON file
+        # Assumes your json is in the root directory
         json_path = os.path.join(os.path.dirname(__file__), '..', 'q-vercel-latency.json')
         with open(json_path, "r") as f:
             data = json.load(f)
