@@ -6,30 +6,25 @@ import os
 
 app = FastAPI()
 
-# 1. CORS Middleware for the actual POST request
+# Strict CORS setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_methods=["*"],
+    allow_methods=["POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# 2. Explicit handler for the OPTIONS preflight request
-@app.options("/api/latency")
-async def options_handler(request: Request):
-    return Response(
-        status_code=200,
-        headers={
+@app.api_route("/api/latency", methods=["POST", "OPTIONS"])
+async def handle_latency(request: Request):
+    if request.method == "OPTIONS":
+        return Response(status_code=200, headers={
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type",
-        }
-    )
-
-@app.post("/api/latency")
-async def get_latency(request: Request):
+        })
+    
     try:
-        # Load JSON file
+        # File is expected in the root directory
         json_path = os.path.join(os.path.dirname(__file__), '..', 'q-vercel-latency.json')
         with open(json_path, "r") as f:
             data = json.load(f)
